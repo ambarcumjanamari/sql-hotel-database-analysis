@@ -1,0 +1,67 @@
+/* Question 1 (Insert the information of a new guest into the "GUest" table */
+INSERT INTO Guests (guestID, first_name, last_name, email, phone, payment_method)
+VALUES ('GID010', 'Emily', 'Brown', 'emily.brown@email.com', '0600001111', 'Credit Card');
+
+/* Question 2 Delete a guest with the code 'GID010' from the "Guest" table */
+DELETE FROM Guests
+WHERE guestID = 'GID010';
+
+/* Question 3 Update the information in the table, by setting 
+room with ID 'RID005' as Available. */
+UPDATE Rooms
+SET status = 'Available'
+WHERE room_id = 'RID005';
+
+/* Question 4
+Join the "Bookings", "Guests", and "Rooms" tables to retrieve 
+the booking ID, full name of the guest, and the room type 
+for all bookings that have a status of 'Confirmed'.*/
+SELECT 
+    Bookings.booking_id,
+    Guests.first_name || ' ' || Guests.last_name AS guest_name,
+    Rooms.room_type
+FROM Bookings
+JOIN Guests ON Bookings.guestID = Guests.guestID
+JOIN Rooms ON Bookings.room_id = Rooms.room_id
+WHERE Bookings.booking_status = 'Confirmed';
+
+/* Q5 - Average room prices (Question: What is the average price per night for each room type?) */
+SELECT "room_type", AVG("price_per_night") AS AvgPrice
+FROM "Rooms"
+GROUP BY "room_type";
+
+/* Q6 - Rooms Ordered by Maintenance Status (Question: List all rooms sorted by status (priority to Maintenance)) */
+SELECT "room_number", "room_type", "status"
+FROM "Rooms"
+ORDER BY 
+    CASE 
+        WHEN "status" = 'Maintenance' THEN 1
+        WHEN "status" = 'Occupied' THEN 2
+        ELSE 3
+    END,
+    "room_number";
+
+/* Q7 - Total Revenue from Completed Payments (Question: What is the total amount received from confirmed payments?) */
+SELECT SUM("amount") AS TotalRevenue
+FROM "Payments"
+WHERE "payment_status" = 'Confirmed';
+
+/* Q8 - Find Rooms That Need Maintenance (Question: List all rooms needing maintenance) */
+SELECT "room_number", "room_type"
+FROM "Rooms"
+WHERE "status" = 'Maintenance';
+
+/* Q9 - Rooms Without Pending Housekeeping Tasks (Question: Find rooms that have no pending housekeeping tasks) */
+SELECT r."room_number", r."room_type"
+FROM "Rooms" r
+WHERE NOT EXISTS (
+    SELECT 1 FROM "HousekeepingTasks" h 
+    WHERE h."room_id" = r."room_id" AND h."status" = 'Pending'
+);
+
+/* Q10 - Bookings Between €1000-€2000 (Question: List bookings with total price between €1000 and €2000) */
+SELECT b."booking_id", g."first_name", g."last_name", b."total_price"
+FROM "Bookings" b
+JOIN "Guests" g ON b."guestID" = g."guestID"
+WHERE b."total_price" BETWEEN 1000 AND 2000
+ORDER BY b."total_price" DESC;
